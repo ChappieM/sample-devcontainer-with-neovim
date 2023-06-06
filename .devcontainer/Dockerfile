@@ -1,16 +1,21 @@
-FROM python:3.8.12-slim
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
+FROM python:3.10.10 as base
 
-RUN apt-get -y update && apt-get upgrade -qqy && apt-get -y install \
-        bash \
-        curl \
-        gcc \
-        git \
-        jq
+ARG USERNAME=non-root
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
 
-# Apply https://github.com/pypa/setuptools/pull/3108
-RUN pip install --upgrade setuptools
+# Create the user
+RUN groupadd --gid $USER_GID $USERNAME \
+	&& useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+	#
+	# [Optional] Add sudo support. Omit if you don't need to install software after connecting.
+	&& apt-get update \
+	&& apt-get install -y sudo \
+	&& echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+	&& chmod 0440 /etc/sudoers.d/$USERNAME
 
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH /root/.local/bin:$PATH
+
+FROM base as dev
+RUN pip install --upgrade pip && pip install poetry==1.4.1
+ENV POETRY_VIRTUALENVS_IN_PROJECT=true
+USER $USERNAME
