@@ -5,5 +5,5 @@
     "target": "dev"
   },
   "appPort": ["6666:6666"],
-  "postCreateCommand": "./.devcontainer/onCreateCommand.sh"
+  "postCreateCommand": "./.devcontainer/postCreateCommand.sh"
 }
